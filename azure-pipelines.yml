@@ -21,7 +21,7 @@ jobs:
         image: tfcollins/test-ubuntu:20.04
         gr-source: apt
       ubuntu18-ppa:
-        image: tfcollins/test-ubuntu:28.04
+        image: tfcollins/test-ubuntu:18.04
         gr-source: ppa
   container: $[ variables['image'] ]
   steps:
