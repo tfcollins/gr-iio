@@ -34,7 +34,8 @@ jobs:
       mkdir build && cd build
       cmake ..
       make
-      make install
+      sudo make install
+      sudo ldconfig
       cd ../..
     displayName: "Install libiio"
   - script: |
@@ -43,14 +44,16 @@ jobs:
       mkdir build && cd build
       cmake ..
       make
-      make install
+      sudo make install
+      sudo ldconfig
       cd ../..
     displayName: "Install libad9361"
   - script: |
       mkdir build
       cd build
       cmake ..
-      make package
+      make
+      sudo make install
     displayName: "Build gr-iio"
   - task: CopyFiles@2
     inputs:
