@@ -1,0 +1,67 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+#trigger:
+#- upgrade-3.8
+
+jobs:
+###########################################################
+# Builds
+###########################################################
+- job: LinuxBuilds
+  # Host Box
+  pool:
+    vmImage: 'ubuntu-16.04'
+  # Docker Images
+  strategy:
+    matrix:
+      ubuntu20:
+        image: tfcollins/test-ubuntu:20.04
+  container: $[ variables['image'] ]
+  steps:
+  - script: |
+      sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y git cmake doxygen graphviz libaio-dev libusb-1.0-0-dev libserialport-dev libavahi-client-dev libxml2-dev rpm tar bzip2 gzip flex bison git
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip python3-setuptools
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gnuradio gnuradio-dev
+    displayName: "Setup Ubuntu"
+    condition: contains(variables['image'], 'ubuntu')
+  - script: |
+      git clone https://github.com/analogdevicesinc/libiio.git
+      cd libiio
+      mkdir build && cd build
+      cmake ..
+      make
+      make install
+      cd ../..
+    displayName: "Install libiio"
+  - script: |
+      git clone https://github.com/analogdevicesinc/libad9361-iio.git
+      cd libad9361-iio
+      mkdir build && cd build
+      cmake ..
+      make
+      make install
+      cd ../..
+    displayName: "Install libad9361"
+  - script: |
+      mkdir build
+      cd build
+      cmake ..
+      make package
+    displayName: "Build gr-iio"
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Agent.BuildDirectory)/s/build/'
+      contents: '$(Agent.BuildDirectory)/s/build/?(*.deb|*.rpm)'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: drop
+
+###########################################################
+# Deploy
+###########################################################
