@@ -20,27 +20,31 @@ jobs:
       ubuntu20-apt:
         image: tfcollins/test-ubuntu:20.04
         gr-source: apt
-      ubuntu18-ppa:
+      ubuntu18-ppa-release:
         image: tfcollins/test-ubuntu:18.04
         gr-source: ppa
+        ppa-ver: releases
+      ubuntu18-ppa-master:
+        image: tfcollins/test-ubuntu:18.04
+        gr-source: ppa
+        ppa-ver: master
   container: $[ variables['image'] ]
   steps:
   - script: |
       sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update
       sudo DEBIAN_FRONTEND=noninteractive apt-get install -y git cmake doxygen graphviz libaio-dev libusb-1.0-0-dev libserialport-dev libavahi-client-dev libxml2-dev rpm tar bzip2 gzip flex bison git
       sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip python3-setuptools
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gnuradio gnuradio-dev liborc-dev libgmp-dev
     displayName: "Setup Ubuntu"
+  - script: |
+      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gnuradio gnuradio-dev liborc-dev libgmp-dev
+    displayName: "Setup GR-APT"
     condition: contains(variables['gr-source'], 'apt')
   - script: |
-      sudo DEBIAN_FRONTEND=noninteractive apt-get -qq update
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y git cmake doxygen graphviz libaio-dev libusb-1.0-0-dev libserialport-dev libavahi-client-dev libxml2-dev rpm tar bzip2 gzip flex bison git
-      sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip python3-setuptools
       sudo apt-get install -y software-properties-common
-      sudo add-apt-repository --yes ppa:gnuradio/gnuradio-releases
+      sudo add-apt-repository --yes ppa:gnuradio/gnuradio-'$(ppa-ver)'
       sudo apt-get update
       sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gnuradio gnuradio-dev liborc-dev libgmp-dev
-    displayName: "Setup Ubuntu"
+    displayName: "Setup GR-PPA"
     condition: contains(variables['gr-source'], 'ppa')
   - script: |
       git clone https://github.com/analogdevicesinc/libiio.git
